@@ -36,6 +36,22 @@ int main(){
         // for(const auto &t:tokens){
         //     cout<<t<<endl;}
 
+        //---builtins
+
+        if(tokens[0]=="cd"){
+            if(tokens.size()<2){
+                cerr<<"cd: missing argument"<<endl;
+            }
+            else{
+                if(chdir(tokens[1].c_str())!=0){
+                    perror("cd ");
+                }
+            }
+            continue; // prompt again after cd
+        }
+
+
+
         vector<char*> args;
         for(auto &token:tokens){
             args.push_back(const_cast<char*>(token.c_str())); // convert string to c style null terminated strings understood by c apis 
@@ -43,6 +59,8 @@ int main(){
         args.push_back(nullptr); // null terminate the array
 
     //----checking and running the command 
+
+   
 
     pid_t pid=fork();
     if(pid==0){
