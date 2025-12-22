@@ -16,7 +16,7 @@ vector<string> tokenize(const string & input){
 int main(){
     string input;
     while(true){
-        cout<<"myshell> ";
+        cout<<"Myshell> ";
 
         if(!getline(cin, input)){  
               cout<<"\n";                                     //handels the ctrl+d command 
@@ -26,13 +26,38 @@ int main(){
         if(input=="exit"){
             break;
         }
-        //cout<< "You entered: " << input << endl;
+        //cout<< "You entered: " << input << endl;---checking the loop;
+        // Tokenize the input
         vector<string> tokens = tokenize(input);
         if(tokens.empty()){
             continue; // if no command is entered, prompt again
         }
-        for(const auto &t:tokens){
-            cout<<t<<endl;}
+        //---checking the tokens 
+        // for(const auto &t:tokens){
+        //     cout<<t<<endl;}
+
+        vector<char*> args;
+        for(auto &token:tokens){
+            args.push_back(const_cast<char*>(token.c_str())); // convert string to c style null terminated strings understood by c apis 
+        }
+        args.push_back(nullptr); // null terminate the array
+
+    //----checking and running the command 
+
+    pid_t pid=fork();
+    if(pid==0){
+        //child process
+        execvp(args[0],args.data());
+        //if execvp returns, there was an error
+        perror("execvp failed");
+        exit(1);
     }
-    return 0;
-}
+    else if (pid>0){
+        waitpid(pid,nullptr,0); // parent process waits for child to finish
+    }//added null ptr for the time for mvp (update later)
+    else {
+        perror("fork failed");
+    }
+
+    }
+    return 0;}
