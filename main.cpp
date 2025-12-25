@@ -52,8 +52,79 @@ int main(){
             continue; // prompt again after cd
         }
 
+        //-- checking for valid  pipe
+        int pipe_pos = -1;
+          for (int i = 0; i < tokens.size(); i++) {
+            if (tokens[i] == "|") {
+          pipe_pos = i;
+          break;
+    }
+}
+
+if (pipe_pos != -1) {
+    vector<string> left(tokens.begin(), tokens.begin() + pipe_pos);
+    vector<string> right(tokens.begin() + pipe_pos + 1, tokens.end());
+
+    if (left.empty() || right.empty()) {
+        cerr << "syntax error near |\n";
+        continue;
+    }
+
+    // pipe logic will go here
+
+    int fd[2];// defined an array of two integers to hold the read and write file descriptors
+if (pipe(fd) < 0) {
+    perror("pipe");
+    continue;
+}
+    pid_t pid1 = fork();
+    if (pid1 == 0) { // first child for left command
+        close(fd[0]); // close read end
+        dup2(fd[1], STDOUT_FILENO); // redirect stdout to pipe write end
+        close(fd[1]);
+
+        vector<char*> args_left;
+        for (auto &token : left) {
+            args_left.push_back(const_cast<char*>(token.c_str()));
+        }
+        args_left.push_back(nullptr);
+
+        execvp(args_left[0], args_left.data());
+        perror("execvp failed");
+        exit(1);
+    }
+
+    pid_t pid2 = fork();
+    if (pid2 == 0) { // second child for right command
+        close(fd[1]); // close write end
+        dup2(fd[0], STDIN_FILENO); // redirect stdin to pipe read end
+        close(fd[0]);
+
+        vector<char*> args_right;
+        for (auto &token : right) {
+            args_right.push_back(const_cast<char*>(token.c_str()));
+        }
+        args_right.push_back(nullptr);
+
+        execvp(args_right[0], args_right.data());
+        perror("execvp failed");
+        exit(1);
+    }
+
+    // parent process
+    close(fd[0]);
+    close(fd[1]);
+    waitpid(pid1, nullptr, 0);
+    waitpid(pid2, nullptr, 0);
+    continue; // prompt again after handling the pipe
+
+
+}
+
+
+
         
-        //--- redirection 
+        //--- Redirection 
         bool redirect_output = false;
         bool append_output = false;
         bool redirect_input = false;
@@ -113,6 +184,7 @@ if (cmd_tokens.empty()) continue;// the complete while loop
         args.push_back(nullptr); // null terminate the array
 
     //----checking and running the command 
+    //---forking 
 
    
 
