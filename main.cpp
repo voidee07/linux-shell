@@ -1,6 +1,8 @@
 #include<bits/stdc++.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>   // open
+
 using namespace std;
 
 vector<string> tokenize(const string & input){
@@ -50,10 +52,62 @@ int main(){
             continue; // prompt again after cd
         }
 
+        
+        //--- redirection 
+        bool redirect_output = false;
+        bool append_output = false;
+        bool redirect_input = false;
+           string in_file;
+
+            string out_file;
+            vector<string> cmd_tokens;
+
+            for (size_t i = 0; i < tokens.size(); i++) {
+                 if (tokens[i] == ">") {
+                 if (i + 1 >= tokens.size()) {
+                     cerr << "syntax error: expected filename after >\n";
+                      
+            cmd_tokens.clear();
+            break;
+        }
+        redirect_output = true;
+        append_output = false;
+        out_file = tokens[i + 1];
+        break;
+    }
+    else if (tokens[i] == ">>") {
+        if (i + 1 >= tokens.size()) {
+            cerr << "syntax error: expected filename after >>\n";
+            cmd_tokens.clear();
+            break;
+        }
+        redirect_output = true;
+        append_output = true;
+        out_file = tokens[i + 1];
+        break;
+    }
+     else if (tokens[i] == "<") {
+        if (i + 1 >= tokens.size()) {
+            cerr << "syntax error: expected filename after <\n";
+            cmd_tokens.clear();
+            break;
+        }
+        redirect_input = true;
+        in_file = tokens[i + 1];
+        break;
+    }
+    else {
+        cmd_tokens.push_back(tokens[i]);
+    }
+}
+
+if (cmd_tokens.empty()) continue;// the complete while loop 
+
+
 
 
         vector<char*> args;
-        for(auto &token:tokens){
+        for(auto &token:cmd_tokens){
             args.push_back(const_cast<char*>(token.c_str())); // convert string to c style null terminated strings understood by c apis 
         }
         args.push_back(nullptr); // null terminate the array
@@ -63,8 +117,33 @@ int main(){
    
 
     pid_t pid=fork();
-    if(pid==0){
-        //child process
+    if(pid==0){ //child process
+        //redirection 
+    if (redirect_input) {
+    int fd = open(in_file.c_str(), O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
+    }
+    dup2(fd, STDIN_FILENO);
+    close(fd);
+}
+        if (redirect_output) {
+             int flags = O_WRONLY | O_CREAT;
+    if (append_output)
+        flags |= O_APPEND;
+    else
+        flags |= O_TRUNC;
+    int fd = open(out_file.c_str(), flags, 0644);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
+    }
+    dup2(fd, STDOUT_FILENO);
+    close(fd);
+}
+
+       
         execvp(args[0],args.data());
         //if execvp returns, there was an error
         perror("execvp failed");
