@@ -1,143 +1,49 @@
 # linux-shell
 project to explore and learn basics of linux by making a linux shell
-🐚 MyShell – A Minimal Linux Shell in C++
-Overview
+Unix Shell from Scratch (C/C++)
 
-MyShell is a minimal Linux shell implemented in C++ to understand how Unix shells work internally.
-It supports command execution, built-in commands, input/output redirection, and multi-stage pipelines using low-level system calls like fork, execvp, pipe, and dup2.
-
-This project focuses on process control and file descriptor management, not advanced parsing.
+A minimal Unix-like shell implemented in C/C++ to understand Linux system internals such as process creation, execution, and inter-process communication.
 
 Features
- Supported
 
-Interactive REPL loop
+Execute external commands using fork() and exec
 
-Execution of external commands (ls, echo, cat, etc.)
+Input and output redirection (<, >)
 
-Built-in commands:
+Command piping using |
 
-cd
+File descriptor manipulation with dup2()
 
-exit
+Process synchronization using wait()
 
-Input redirection: <
+Tech Stack
 
-Output redirection: >
+Language: C / C++
 
-Output append redirection: >>
+Platform: Linux
 
-Single and multiple pipelines (|)
+Core Concepts: System calls, file descriptors, pipes, IPC
 
-Combination of pipes and redirection
-(e.g. cat < in.txt | sort | uniq -c > out.txt)
+How It Works
 
-Proper process cleanup using waitpid
+The shell parses user input, creates child processes using fork(), sets up pipes and redirections via dup2(), executes commands using exec, and waits for process completion using wait().
 
- Not Supported (by design)
+Build & Run
+g++ shell.cpp -o shell
+./shell
 
-Quoted strings (" " or ' ')
-
-Escape sequences (\n, \t, etc.)
-
-Environment variables ($PATH, $HOME)
-
-Globbing (*, ?)
-
-Background execution (&)
-
-stderr redirection (2>, &>)
-
-These features require a full shell parser and are intentionally omitted.
-
-How It Works (High Level)
-
-Read user input in a loop (REPL)
-
-Tokenize input by whitespace
-
-Handle built-in commands
-
-Parse redirection operators (<, >, >>)
-
-Split commands by pipe (|)
-
-Create pipelines using pipe()
-
-Fork child processes
-
-Set up stdin/stdout using dup2
-
-Execute commands using execvp
-
-Parent waits for all child processes
-
-Compilation
-g++ main.cpp -o myshell
-
-Running the Shell
-./myshell
-
-Example Commands
-Basic command
-ls
-
-Input redirection
-cat < file.txt
-
-Output redirection
-ls > out.txt
-
-Append output
-echo hello >> log.txt
-
-Pipeline
+Example Usage
 ls | wc -l
+cat < input.txt > output.txt
 
-Pipeline + redirection
-cat < data.txt | sort | uniq -c > result.txt
+Limitations
 
-Sample Test Case
-echo alpha > in.txt
-echo beta >> in.txt
-echo alpha >> in.txt
+No built-in commands (cd, exit)
 
-cat < in.txt | sort | uniq -c
+No background execution or job control
 
+Not fully POSIX-compliant
 
-Expected output:
+Purpose
 
-      2 alpha
-      1 beta
-
-Learning Outcomes
-
-Understanding Unix process creation (fork)
-
-Replacing process images (execvp)
-
-File descriptor manipulation
-
-Pipe-based inter-process communication
-
-Correct resource cleanup
-
-Shell execution flow
-
-Future Extensions
-
-Quote and escape parsing
-
-Environment variable expansion
-
-Job control (&, fg, bg)
-
-stderr redirection
-
-Command history
-
-Tab completion
-
-Author
-
-Built as a learning project to understand Linux internals and shell execution.
+Built for educational purposes to gain hands-on experience with Unix process management and low-level system programming.
